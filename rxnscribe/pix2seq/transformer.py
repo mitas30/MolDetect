@@ -15,7 +15,7 @@ import torch.nn.functional as F
 from torch import nn, Tensor
 from .attention_layer import Attention
 
-from transformers import EncoderDecoderConfig, EncoderDecoderModel, AutoConfig, BertConfig
+from transformers import EncoderDecoderConfig, EncoderDecoderModel, AutoConfig, BertConfig, BertModel, BertLMHeadModel
 
 
 class Transformer(nn.Module):
@@ -355,7 +355,9 @@ def build_transformer(args, tokenizer):
         decoder_config = BertConfig(max_position_embeddings = 1764, hidden_size = 256, num_attention_heads = 4, vocab_size = num_vocal, is_decoder = True, num_hidden_layers = 4, intermediate_size = 1024)
         config = EncoderDecoderConfig.from_encoder_decoder_configs(encoder_config, decoder_config, add_pooling_layer = False, decoder_add_pooling_layer = False)
 
-        model = EncoderDecoderModel(config=config)
+        model = EncoderDecoderModel(config=config,
+                                    encoder=BertModel(config.encoder, add_pooling_layer=False),
+                                    decoder=BertLMHeadModel(config.decoder))
         model.config.vocab_size = num_vocal
         model.config.decoder_start_token_id = tokenizer.SOS_ID
         model.config.pad_token_id = tokenizer.PAD_ID
